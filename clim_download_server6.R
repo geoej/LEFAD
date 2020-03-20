@@ -3,7 +3,7 @@
 # contact: ebrahim.jahanshiri@cffresearch.org, e.jahanshiri@gmail.com
 # How to do:
 # this code is run by your R client to extract the climate and soil data from where your climate and soil data are organised
-# please see Worldclim and ISRIC websites to download your copy of the data
+# please see Worldclim and ISRIC websites to download your copy of the data 
 
 list.of.packages <- c("raster", "sp")
 pckList <- lapply(list.of.packages, require, character.only = TRUE)
