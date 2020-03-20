@@ -1,6 +1,5 @@
 # LEFAD
-Code belonging to the manuscript "A Land Evaluation Framework for Agricultural Diversification"
-
+Code for "A Land Evaluation Framework for Agricultural Diversification" manuscript
 Codes:
 - DataCleanFilter.R	        Code for cleaning the .csv files
 - PedoclimateDownloader.R	  Batch downloads soil and climate data
