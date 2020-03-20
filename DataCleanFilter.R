@@ -10,6 +10,7 @@ lapply(list.of.packages, require, character.only = TRUE)
 
 setwd("/Users/ej/CFFRC/04-Research/Soil/climatesoilindex/cmbndsuitindx2/")
 # data cleaning  dataset from GBIF for data in .CSV files
+# cropid refers to the id in CFFRC database
 list = list.files("./data/accessions/GBIF/Occurencedata/third", full.names = T)
 cropids = NULL
 sci_names = NULL
