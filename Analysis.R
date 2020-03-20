@@ -2,8 +2,6 @@
 # the purpose of this code is to calculate suitability indices 
 # contact: ebrahim.jahanshiri@cffresearch.org, e.jahanshiri@gmail.com
 library(data.table)
-
-
 setwd("~/CFFRC/04-Research/Soil/climatesoilindex/cmbndsuitindx2/")
 
 # reading ecological niche descriptors and combining the extracted data with presence/accession data
@@ -15,7 +13,7 @@ alldata <- cbind(alldatabg_raw, alldatabg_extracted)
 # making sure all the cases have available soil, 
 # climate and accession data and remote crops with very low records
 # assigning separate data frames for climate variables
-cropdata <- alldata[complete.cases(alldata[,]),] #116803
+cropdata <- alldata[complete.cases(alldata[,]),] 
 row.names(cropdata) <- 1:nrow(cropdata)
 cropdata <- cropdata[-which(cropdata$sci_name == "Pachyrhizus erosus (L.) Urb"),]
 cropdata <- cropdata[-which(cropdata$sci_name == "Ipomoea batatas (L.) Lam"),]
