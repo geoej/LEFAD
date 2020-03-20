@@ -11,7 +11,7 @@ alldatabg_raw <- readRDS("./data/extract/Oct19Combined/alldatabg_raw.rds")
 alldata <- cbind(alldatabg_raw, alldatabg_extracted) 
 
 # making sure all the cases have available soil, 
-# climate and accession data and remote crops with very low records
+# climate and accession data and remve crops with very low number of records
 # assigning separate data frames for climate variables
 cropdata <- alldata[complete.cases(alldata[,]),] 
 row.names(cropdata) <- 1:nrow(cropdata)
