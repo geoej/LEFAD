@@ -1,4 +1,4 @@
-# GBIF climsoildownllader v0.1
+# GBIF climsoildownllader v3
 # the purpose of this code is to download soil and climate data for GBIF  data
 # contact: ebrahim.jahanshiri@cffresearch.org, e.jahanshiri@gmail.com
 # How to do:
