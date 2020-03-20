@@ -1,21 +1,17 @@
+# Results.R  v6
+# Creating figures for the manuscript
+# contact: ebrahim.jahanshiri@cffresearch.org, e.jahanshiri@gmail.com
 
-# library(dplyr)
-# library(ggplot2)
-# library(sp)
-# library(rgdal)
-# library(leaflet)
-# library(maptools)
-# library(maps)
-# library(sf)
-setwd("/Users/ej/CFFRC/04-Research/Soil/climatesoilindex/cmbndsuitindx2/")
 library(tidyverse)
 library(reshape2)
 library(ggplot2)
+library(data.table)
+library(maps)
+library(ggthemes)
+setwd("/Users/ej/CFFRC/04-Research/Soil/climatesoilindex/cmbndsuitindx2/")
 
 # Getting simple statistics for each crop 
 alldata <- readRDS('./data/output/Oct19Combined/alldata.rds')
-# alldata5bg <- readRDS('./data/output/fifth/BGIITA_alldata.rds')
-# alldata <- bind_rows(alldata5, alldata5bg)
 alldata$crop <- as.factor(alldata$crop)
 names(alldata) <- c("point",                            "crop",                             "latitude",
 "longitude" ,                       "tempdata" ,                        "raindata",
@@ -31,13 +27,7 @@ names(alldata) <- c("point",                            "crop",                 
 "norainـsoilprodـallave" ,          "norainـsoilaveـallprod" ,          "norainـsoilaveـallave",
 "norainـsoilaveweightedـallprod",   "norainـsoilaveweightedـallave")
 
-#yearmax5bg <- as.tibble(readRDS('./data/Output/fifth/BGIITA_yearmax.rds'))
 yearmax <- as_tibble(readRDS('./data/Output/Oct19Combined/yearmax.rds'))
-#yearmaxbg <-  as.tibble(readRDS('./data/Output/third/BG_IITA_yearmax.rds'))
-# the error belongs to the factor level 
-#yearmax <- bind_rows(yearmax4, yearmax5, yearmaxbg)
-# correcting the error
-#yearmax$crop = as_factor(yearmax$crop)
 # removing records below 30 so that mean and SD are correct representative
 yearmax = yearmax[-which(yearmax$crop == "Bitter Bean"),] #46263
 yearmax = yearmax[-which(yearmax$crop == "Sesbania"),] #47121 47122 47123 47124
@@ -53,49 +43,9 @@ yearmax = yearmax[-which(yearmax$crop == "Okra"),]
 yearmax = yearmax[-which(yearmax$crop == "Rapeseed"),]
 yearmax = yearmax[-which(yearmax$crop == "Lima Bean"),] #659 records
 yearmax = yearmax[-which(yearmax$crop == "Groundnut"),]
-# 79795 records remain
-# writing ecological data out
-ecology <- readRDS("./data/ecology/new_ecology.rds")
-#write.csv(ecology[ecology$name_var_lndrce %in% levels(yearmax$crop),], "./data/ecology/ecologywithtexture.csv")
-
-# out for testing thea accuracy
-# yearmax.eval <- yearmax[sample(nrow(yearmax), 0.01*nrow(yearmax)), ]
-# ecols = data.frame(matrix(nrow = 0, ncol=ncol(ecology)))
-# ecols = NULL
-# ns = NULL
-# for (i in 1:749){
-#   # ecols = rbind(ecols, ecology[which(ecology$name_var_lndrce == as.character(yearmax.eval$crop)[i]),])
-#   # print(ecology$name_var_lndrce == as.character(yearmax.eval$crop[i]))
-#   n = which(ecology$name_var_lndrce == as.character(yearmax.eval$crop)[i])
-#   #print(cbind(ecology$name_var_lndrce[n], as.character(yearmax.eval$crop)[i]))
-#   ecols = bind_rows(list(ecols, as.list(ecology[n[1],])))
-#   #ns = append(ns, n)
-#   #print(n)
-#   }
-library(data.table)
-#write.csv(bind_cols(ecols,yearmax.eval), "./data/output/third/OnePercentTestData.csv")
-
 yearmax1 <- yearmax[,-c(1,3:10)]
 yearmax1.m <- melt(yearmax1, id.vars = "crop")
-
-# yearmax1.m.m <- melt(yearmax1, id.vars = "value")
-# 
-# print(which(is.na(yearmax1.m[,c("value")])))
-# names(yearmax)
-# [1] "point"                            "crop"                             "latitude"                        
-# [4] "longitude"                        "tempdata"                         "raindata"                        
-# [7] "phdata"                           "depthdata"                        "sanddata"                        
-# [10] "claydata"                         "tempsuit"                         "rainsuit"                        
-# [13] "phsuit"                           "depthsuit"                        "texturesuit"                     
-# [16] "climprod"                         "climave"                          "soilprod"                        
-# [19] "soilave"                          "soilaveweighted"                  "climprod_soilprod_allprod"       
-# [22] "climprod_soilprod_allave"         "climprod_soilave_allprod"         "climprod_soilave_allave"         
-# [25] "climprod_soilaveweighted_allprod" "climprod_soilaveweighted_allave"  "climave_soilprod_allprod"        
-# [28] "climave_soilprod_allave"          "climave_soilave_allprod"          "climave_soilave_allave"          
-# [31] "climave_soilaveweighted_allprod"  "climave_soilaveweighted_allave"   "norainـsoilprodـallprod"         
-# [34] "norainـsoilprodـallave"           "norainـsoilaveـallprod"           "norainـsoilaveـallave"           
-# [37] "norainـsoilaveweightedـallprod"   "norainـsoilaveweightedـallave" 
-
+# further aggregating data for presentation
 assign("tempsuit", group_by(yearmax1, crop) %>% summarise(mean = mean(tempsuit)))
 assign("rainsuit", group_by(yearmax1, crop) %>% summarise(mean = mean(rainsuit)))
 assign("phsuit", group_by(yearmax1, crop) %>% summarise(mean = mean(phsuit)))
@@ -210,36 +160,10 @@ write.csv(res, "./Analysis/sixth/results_perindex.csv")
 write_csv(as.data.frame( res,check.names = F ), "./Analysis/sixth/results_perindex1.csv")
 
 res2 <- as.data.frame(t(as.data.frame(res,check.names = F )))
-# printing out the results of mean in a box plot
-png(file="./Analysis/sixth/boxplot_perindex_mean.png", width = 2500, height = 1500, res = 200)
-mean <- 
-  ggplot(data = res2, aes(x= row.names(res2), y = mean)) +
-  geom_boxplot(outlier.shape = NA)+ coord_flip()+  
-  geom_text(aes(label=..count..), y=-1, stat='count', colour="red", size=4)+
-  ylab("Mean of predictions") +
-  xlab("Index type")
-print(mean)
-dev.off()
-
-png(file="./Analysis/sixth/boxplot_perindex_sd.png", width = 2500, height = 1500, res = 200)
-sd <- 
-  ggplot(data = res2, aes(x= row.names(res2), y = sd)) +
-  geom_boxplot(outlier.shape = NA)+ coord_flip()+  
-  geom_text(aes(label=..count..), y=-1, stat='count', colour="red", size=4)+
-  ylab("SD of predictions") +
-  xlab("Index type")
-print(sd)
-dev.off()
-
-
-# print the geo_line as well:
-
-# creating the dataset per crop groups
+              
+## creating the dataset per crop groups
 tindices = t(cbind(indices[,-c(1,2)], num.sample[,2]))
 colnames(tindices) <- c(as.character(indices[,1]))
-#write.csv(as.data.frame(tindices, check.names=F), "./Analysis/fifth/results_percrop.csv")
-
-#write.csv(cbind(levels(yearmax$crop), levels(as.factor(alldata$sci_name)), num.sample), "./Analysis/fifth/crops_count.csv") #### didnt
 
 CEREALS <- yearmax1.m[yearmax1.m$crop %in% c( "Fonio", 
                                              "Finger Millet", 
@@ -267,11 +191,6 @@ LEGUMES  <- yearmax1.m[yearmax1.m$crop %in% c("Black Gram",
                                               "Tepary Beans ",
                                               "Moringa"), ]
 
-# cerealveg2 <- yearmax1.m[yearmax1.m$crop %in% c("Fonio",
-#                                               "Quinoa",
-#                                               "Okra",
-#                                               "Sesame"), ]
-
 TUBER_ROOT <- yearmax1.m[yearmax1.m$crop %in% c("Taro (Cocoyam)",
                                            "Yautia",
                                            "Mashua",
@@ -290,29 +209,6 @@ FRUITS <- yearmax1.m[yearmax1.m$crop %in% c("Soursop",
                                            "Pomegranate",
                                            "Akee"), ]
 
-# cereal1 <- yearmax1.m[yearmax1.m$crop %in% c("Paddy",
-#                                              "Sugarcane",
-#                                              "Common Wheat"
-#                                               ), ]
-# 
-# legume1 <- yearmax1.m[yearmax1.m$crop %in% c("Cowpea",
-#                                             "Hyacinth Bean",
-#                                             "Leucaena",
-#                                             "Pigeon pea",
-#                                             "Soybean"), ]
-# 
-# legume2 <- yearmax1.m[yearmax1.m$crop %in% c("Winged Bean",
-#                                             "Bitter Bean",
-#                                             "Long Beans",
-#                                             "Black Gram"), ]
-# 
-# legume3 <- yearmax1.m[yearmax1.m$crop %in% c("Sesbania",
-#                                             "Egyptian sesban",
-#                                             "Velvet Bean",
-#                                             "White Pea"), ]
-# 
-# legume4 <- yearmax1.m[yearmax1.m$crop %in% c("adzuki bean",
-#                                             "African yam bean"), ]
 lbl = c("Thermal",
    "Rainfall",
    "pH",
@@ -346,64 +242,8 @@ lbl = c("Thermal",
    "Thermal x Average(0.6xpH, 0.2xTexture, 0.2xDepth)",   
    "Average(Thermal, Average(0.6xpH, 0.2xTexture, 0.2xDepth))")
 
-for (i in c("CEREALS", "LEGUMES", "TUBER_ROOT", "FRUITS")){
-
-data = get(i)
-
-#for (i in levels(yearmax$crop)){
- # data <- yearmax1.m[yearmax1.m$crop %in% i, ]
-png(file=paste('./Analysis/sixth/combined.png', sep =""), width = 7000, height = 5500, res = 600)
-p1 <- 
-  ggplot(data = CEREALS, aes(x=variable, y=value)) +
-  geom_boxplot(outlier.shape = NA)+ coord_flip()+  
-  #geom_text(aes(label=..count..), y=-1, stat='count', colour="red", size=4)+
-  ylab("CEREALS") +
-  xlab("Index type")+ scale_x_discrete(labels=lbl)#+theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())
-
-p2 <- 
-  ggplot(data = LEGUMES, aes(x=variable, y=value)) +
-  geom_boxplot(outlier.shape = NA)+ coord_flip()+  
-  #geom_text(aes(label=..count..), y=-1, stat='count', colour="red", size=4)+
-  ylab("LEGUMES") +
-  xlab("Index type")+ scale_x_discrete(labels=lbl)#+theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())
-
-p3 <- 
-  ggplot(data = TUBER_ROOT, aes(x=variable, y=value)) +
-  geom_boxplot(outlier.shape = NA)+ coord_flip()+  
-  #geom_text(aes(label=..count..), y=-1, stat='count', colour="red", size=4)+
-  ylab("TUBER_ROOT") +
-  xlab("Index type")+ scale_x_discrete(labels=lbl) #+theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())
-
-p4 <- 
-  ggplot(data = FRUITS, aes(x=variable, y=value)) +
-  geom_boxplot(outlier.shape = NA)+ coord_flip()+  
-  #geom_text(aes(label=..count..), y=-1, stat='count', colour="red", size=4)+
-  ylab("FRUITS") +
-  xlab("Index type")+ scale_x_discrete(labels=lbl)#+theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())
-library(gridExtra)
-p = grid.arrange(p1, p2, p3, p4, nrow = 2)
-
-#print(p + facet_grid(rows = vars(crop)))
-print(p)
-
-dev.off()
-}
-#}
-
-# for (i in levels(yearmax1.m$variable)){
-#   data <- yearmax1.m[yearmax1.m$variable %in% i, ]
-#   png(file=paste('./data/output/third/', i, ".png", sep =""), width = 2500, height = 1500, res = 200)
-#   p <- 
-#     ggplot(data = data, aes(x=variable, y=value)) +
-#     geom_boxplot(outlier.shape = NA)+ coord_flip()+  
-#     geom_text(aes(label=..count..), y=-1, stat='count', colour="red", size=4)+
-#     ylab("Suitability index") +
-#     xlab("Index type")
-#   print(p + facet_grid(rows = vars(crop)))
-#   dev.off()
-# }
-
-## ggmap tutorial
+##  figure 1
+              
 alldata.sp <- as.data.frame(alldata)
 library(sp)
 coordinates(alldata.sp) <- ~ longitude + latitude
@@ -412,23 +252,10 @@ proj4string(news) <- CRS("+init=epsg:4326")
 library(sf)
 sfalldata <- st_as_sf(alldata.sp)
 
-### Use GGPLOTLY https://www.r-bloggers.com/how-to-deal-with-ggplotly-huge-maps/
-library(ggplot2)
-library(maps)
-library(ggthemes)
 
 world <- ggplot() +
   borders("world", colour = "gray85", fill = "gray80") +
   theme_map()
-
-
-# map <- world +
-#   geom_point(aes(x = longitude, y = latitude,
-#                  text = paste('crop: ', crop,
-#                               'tempsuit : ', tempsuit), size = norainـsoilaveweightedـallave),
-#              data = yearmax, colour = 'purple', alpha = .5) +
-#   scale_size_continuous(range = c(1, 8), breaks = c(250, 500, 750, 1000)) +
-#   labs(size = 'Followers')
 
 
 map <- world +
@@ -440,522 +267,297 @@ map <- world +
              data = as.data.frame(bgdata), alpha = .5) 
 png("./Analysis/sixth/Figure1.png", width = 3500, heigh = 2200,res = 300)
 map + theme(legend.direction = "horizontal", legend.box.background = element_rect())
+dev.off()              
+              
+              
+## figure 2
+
+for (i in c("CEREALS", "LEGUMES", "TUBER_ROOT", "FRUITS")){
+
+  data = get(i)
+
+  #for (i in levels(yearmax$crop)){
+  # data <- yearmax1.m[yearmax1.m$crop %in% i, ]
+  png(file=paste('./Analysis/sixth/combined.png', sep =""), width = 7000, height = 5500, res = 600)
+  p1 <-
+    ggplot(data = CEREALS, aes(x=variable, y=value)) +
+    geom_boxplot(outlier.shape = NA)+ coord_flip()+
+    #geom_text(aes(label=..count..), y=-1, stat='count', colour="red", size=4)+
+    ylab("CEREALS") +
+    xlab("Index type")+ scale_x_discrete(labels=lbl)#+theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())
+
+  p2 <-
+    ggplot(data = LEGUMES, aes(x=variable, y=value)) +
+    geom_boxplot(outlier.shape = NA)+ coord_flip()+
+    #geom_text(aes(label=..count..), y=-1, stat='count', colour="red", size=4)+
+    ylab("LEGUMES") +
+    xlab("Index type")+ scale_x_discrete(labels=lbl)#+theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())
+
+  p3 <-
+    ggplot(data = TUBER_ROOT, aes(x=variable, y=value)) +
+    geom_boxplot(outlier.shape = NA)+ coord_flip()+
+    #geom_text(aes(label=..count..), y=-1, stat='count', colour="red", size=4)+
+    ylab("TUBER_ROOT") +
+    xlab("Index type")+ scale_x_discrete(labels=lbl) #+theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())
+
+  p4 <-
+    ggplot(data = FRUITS, aes(x=variable, y=value)) +
+    geom_boxplot(outlier.shape = NA)+ coord_flip()+
+    #geom_text(aes(label=..count..), y=-1, stat='count', colour="red", size=4)+
+    ylab("FRUITS") +
+    xlab("Index type")+ scale_x_discrete(labels=lbl)#+theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())
+  library(gridExtra)
+  p = grid.arrange(p1, p2, p3, p4, nrow = 2)
+
+  #print(p + facet_grid(rows = vars(crop)))
+  print(p)
+
+  dev.off()
+
+
+    
+## figure 3 and 4      
+      
+bgdata <- readRDS(file = "./data/extract/old/third/BGIITA_AllHasNA.rds")
+
+
+png("./Analysis/sixth/bg_depth.png", width = 7000, height = 5500, res = 600)
+plot(density(bgdata$BDRICM.M,na.rm = T), xlab = "Soil depth (cm)", main = "", xlim=c(45,205))
+abline(v=50, col = "red", lty = 2)
+abline(v=150)
+abline(v=175)
+abline(v=200, col = "red", lty = 2)
+dev.off()
+
+densityDepth <- data.frame(Depth=density(bgdata$BDRICM.M,na.rm = T)$x, 
+                       densityDepth = density(bgdata$BDRICM.M,na.rm = T)$y)
+write_csv(densityDepth, "./Analysis/sixth/bg_density_data_BDRICM.csv")
+
+
+png("./Analysis/sixth/bg_pH.png", width = 7000, height = 5500, res = 600)
+#par(mfrow=c(2,2)) 
+# for pH
+plot(density(bgdata$PHIHOX.M.sl1/10,na.rm = T), xlab = "pH", main = "")
+lines(density(bgdata$PHIHOX.M.sl2/10,na.rm = T), col = "blue")
+lines(density(bgdata$PHIHOX.M.sl3/10,na.rm = T), col = "red")
+lines(density(bgdata$PHIHOX.M.sl4/10,na.rm = T), col = "green")
+lines(density(bgdata$PHIHOX.M.sl5/10,na.rm = T), col = "yellow")
+
+legend(7.5, 1.2, c("0-5 cm", "5-15 cm", "15-30 cm", "30-60 cm", "60-100 cm"), col = c("black", "blue", "red", "green", "yellow"),
+         lwd = c(3, 3, 3, 3, 3))
+
+abline(v=4.3, col = "red", lty = 2)
+abline(v=5.0)
+abline(v=6.5)
+abline(v=7.0, col = "red", lty = 2)
+dev.off()
+
+# for sandclay
+png("./Analysis/fifth/bg_sandclay.png", width = 7000, height = 5500, res = 600)
+plot(density(bgdata$SNDPPT.M.sl1,na.rm = T), xlab = "Avg. Clay% (left curves) and Sand% (right curves)", main = "", xlim=c(0,94), ylim = c(0,0.085))
+lines(density(bgdata$SNDPPT.M.sl2,na.rm = T), col = "blue")
+lines(density(bgdata$SNDPPT.M.sl3,na.rm = T), col = "red")
+lines(density(bgdata$SNDPPT.M.sl4,na.rm = T), col = "green")
+lines(density(bgdata$SNDPPT.M.sl5,na.rm = T), col = "yellow")
+
+lines(density(bgdata$CLYPPT.M.sl1,na.rm = T), col = "black")
+lines(density(bgdata$CLYPPT.M.sl2,na.rm = T), col = "blue")
+lines(density(bgdata$CLYPPT.M.sl3,na.rm = T), col = "red")
+lines(density(bgdata$CLYPPT.M.sl4,na.rm = T), col = "green")
+lines(density(bgdata$CLYPPT.M.sl5,na.rm = T), col = "yellow")
+legend(35,0.086, c("0-5 cm", "5-15 cm", "15-30 cm", "30-60 cm", "60-100 cm"), col = c("black", "blue", "red", "green", "yellow"),
+       lwd = c(3, 3, 3, 3, 3))
+
+
+#abline(v=15, col = "red", lty = 2)
+abline(v=0, col = "red", lty = 2)
+abline(v=10)
+abline(v=15)
+
+abline(v=70, col = "red", lty = 2)
+abline(v=86)
+abline(v=100, col = "red", lty = 2)
+
+dev.off()
+
+# for clay only
+png("./Analysis/sixth/bg_clay.png", width = 7000, height = 5500, res = 600)
+plot(density(bgdata$CLYPPT.M.sl1,na.rm = T), xlab = "%Clay", main = "", xlim=c(0,48), ylim = c(0,0.085))
+lines(density(bgdata$CLYPPT.M.sl2,na.rm = T), col = "blue")
+lines(density(bgdata$CLYPPT.M.sl3,na.rm = T), col = "red")
+lines(density(bgdata$CLYPPT.M.sl4,na.rm = T), col = "green")
+lines(density(bgdata$CLYPPT.M.sl5,na.rm = T), col = "yellow")
+
+legend(39,0.087, c("0-5 cm", "5-15 cm", "15-30 cm", "30-60 cm", "60-100 cm"), col = c("black", "blue", "red", "green", "yellow"),
+       lwd = c(3, 3, 3, 3, 3))
+
+abline(v=10)
+abline(v=20)
+
 dev.off()
 
 
-library(htmlwidgets)
-saveWidget(map, "./Analysis/sixth/test.html")
-# This is the static map that I’m animating using ggplotly, with the following code:
+png("./Analysis/sixth/bg_temp_rain.png",  width = 7000, height = 11000, res = 600)
+par(mfrow=c(6,4)) 
+plot(density(bgdata$tavgJan,na.rm = T), xlab = "Avg. Temperature °C (Jan)", main = "", col = "grey")
+lines(density(bgdata$tminJan,na.rm = T), col = "blue")
+lines(density(bgdata$tmaxJan,na.rm = T), col = "red")
+abline(v=16, col = "red", lty = 2)
+abline(v=19)
+abline(v=30)
+abline(v=38, col = "red", lty = 2)
 
-# library(plotly)
+plot(density(bgdata$tavgFeb,na.rm = T), xlab = "Avg. Temperature °C (Feb)", main = "", col = "grey")
+lines(density(bgdata$tminFeb,na.rm = T), col = "blue")
+lines(density(bgdata$tmaxFeb,na.rm = T), col = "red")
+abline(v=16, col = "red", lty = 2)
+abline(v=19)
+abline(v=30)
+abline(v=38, col = "red", lty = 2)
 
-# ggplotly(map, tooltip = c('text', 'size'))
+plot(density(bgdata$tavgMar,na.rm = T), xlab = "Avg. Temperature °C (Mar)", main = "", col = "grey")
+lines(density(bgdata$tminMar,na.rm = T), col = "blue")
+lines(density(bgdata$tmaxMar,na.rm = T), col = "red")
+abline(v=16, col = "red", lty = 2)
+abline(v=19)
+abline(v=30)
+abline(v=38, col = "red", lty = 2)
+
+plot(density(bgdata$tavgApr,na.rm = T), xlab = "Avg. Temperature °C (Apr)", main = "", col = "grey")
+lines(density(bgdata$tminApr,na.rm = T), col = "blue")
+lines(density(bgdata$tmaxApr,na.rm = T), col = "red")
+abline(v=16, col = "red", lty = 2)
+abline(v=19)
+abline(v=30)
+abline(v=38, col = "red", lty = 2)
+
+plot(density(bgdata$tavgMay,na.rm = T), xlab = "Avg. Temperature °C (May)", main = "", col = "grey")
+lines(density(bgdata$tminMay,na.rm = T), col = "blue")
+lines(density(bgdata$tmaxMay,na.rm = T), col = "red")
+abline(v=16, col = "red", lty = 2)
+abline(v=19)
+abline(v=30)
+abline(v=38, col = "red", lty = 2)
+
+plot(density(bgdata$tavgJun,na.rm = T), xlab = "Avg. Temperature °C (Jun)", main = "", col = "grey")
+lines(density(bgdata$tminJun,na.rm = T), col = "blue")
+lines(density(bgdata$tmaxJun,na.rm = T), col = "red")
+abline(v=16, col = "red", lty = 2)
+abline(v=19)
+abline(v=30)
+abline(v=38, col = "red", lty = 2)
+
+plot(density(bgdata$tavgJul,na.rm = T), xlab = "Avg. Temperature °C (Jul)", main = "", col = "grey")
+lines(density(bgdata$tminJul,na.rm = T), col = "blue")
+lines(density(bgdata$tmaxJul,na.rm = T), col = "red")
+abline(v=16, col = "red", lty = 2)
+abline(v=19)
+abline(v=30)
+abline(v=38, col = "red", lty = 2)
+
+plot(density(bgdata$tavgAug,na.rm = T), xlab = "Avg. Temperature °C (Aug)", main = "", col = "grey")
+lines(density(bgdata$tminAug,na.rm = T), col = "blue")
+lines(density(bgdata$tmaxAug,na.rm = T), col = "red")
+abline(v=16, col = "red", lty = 2)
+abline(v=19)
+abline(v=30)
+abline(v=38, col = "red", lty = 2)
+
+plot(density(bgdata$tavgSep,na.rm = T), xlab = "Avg. Temperature °C (Sep)", main = "", col = "grey")
+lines(density(bgdata$tminSep,na.rm = T), col = "blue")
+lines(density(bgdata$tmaxSep,na.rm = T), col = "red")
+abline(v=16, col = "red", lty = 2)
+abline(v=19)
+abline(v=30)
+abline(v=38, col = "red", lty = 2)
+
+plot(density(bgdata$tavgOct,na.rm = T), xlab = "Avg. Temperature °C (Oct)", main = "", col = "grey")
+lines(density(bgdata$tminOct,na.rm = T), col = "blue")
+lines(density(bgdata$tmaxOct,na.rm = T), col = "red")
+abline(v=16, col = "red", lty = 2)
+abline(v=19)
+abline(v=30)
+abline(v=38, col = "red", lty = 2)
+
+plot(density(bgdata$tavgNov,na.rm = T), xlab = "Avg. Temperature °C (Nov)", main = "", col = "grey")
+lines(density(bgdata$tminNov,na.rm = T), col = "blue")
+lines(density(bgdata$tmaxNov,na.rm = T), col = "red")
+abline(v=16, col = "red", lty = 2)
+abline(v=19)
+abline(v=30)
+abline(v=38, col = "red", lty = 2)
+
+plot(density(bgdata$tavgDec,na.rm = T), xlab = "Avg. Temperature °C (Dec)", main = "", col = "grey")
+lines(density(bgdata$tminDec,na.rm = T), col = "blue")
+lines(density(bgdata$tmaxDec,na.rm = T), col = "red")
+abline(v=16, col = "red", lty = 2)
+abline(v=19)
+abline(v=30)
+abline(v=38, col = "red", lty = 2)
+dev.off()
+
+# rains
+      
+plot(density(rainaggregs$RMS_Jan ,na.rm = T), xlab = "Rainfall mm (Jan-Apr Season)", main = "")
+abline(v=300, col = "red", lty = 2)
+abline(v=750)
+abline(v=1400)
+abline(v=3000, col = "red", lty = 2)
+plot(density(rainaggregs$RMS_Feb,na.rm = T), xlab = "Rainfall mm (Feb-May Season)", main = "")
+abline(v=300, col = "red", lty = 2)
+abline(v=750)
+abline(v=1400)
+abline(v=3000, col = "red", lty = 2)
+plot(density(rainaggregs$RMS_Mar,na.rm = T), xlab = "Rainfall mm (Mar-Jun Season)", main = "")
+abline(v=300, col = "red", lty = 2)
+abline(v=750)
+abline(v=1400)
+abline(v=3000, col = "red", lty = 2)
+plot(density(rainaggregs$RMS_Apr,na.rm = T), xlab = "Rainfall mm (Apr-Jul Season)", main = "")
+abline(v=300, col = "red", lty = 2)
+abline(v=750)
+abline(v=1400)
+abline(v=3000, col = "red", lty = 2)
+plot(density(rainaggregs$RMS_May,na.rm = T), xlab = "Rainfall mm (May-Aug Season)", main = "")
+abline(v=300, col = "red", lty = 2)
+abline(v=750)
+abline(v=1400)
+abline(v=3000, col = "red", lty = 2)
+plot(density(rainaggregs$JRMS_un,na.rm = T), xlab = "Rainfall mm (Jun-Sep Season)", main = "")
+abline(v=300, col = "red", lty = 2)
+abline(v=750)
+abline(v=1400)
+abline(v=3000, col = "red", lty = 2)
+plot(density(rainaggregs$RMS_Jul,na.rm = T), xlab = "Rainfall mm (Jul-Oct Season)", main = "")
+abline(v=300, col = "red", lty = 2)
+abline(v=750)
+abline(v=1400)
+abline(v=3000, col = "red", lty = 2)
+plot(density(rainaggregs$RMS_Aug,na.rm = T), xlab = "Rainfall mm (Aug-Nov Season)", main = "")
+abline(v=300, col = "red", lty = 2)
+abline(v=750)
+abline(v=1400)
+abline(v=3000, col = "red", lty = 2)
+plot(density(rainaggregs$RMS_Sep,na.rm = T), xlab = "Rainfall mm (Sep-Dec Season)", main = "")
+abline(v=300, col = "red", lty = 2)
+abline(v=750)
+abline(v=1400)
+abline(v=3000, col = "red", lty = 2)
+plot(density(rainaggregs$RMS_Oct,na.rm = T), xlab = "Rainfall mm (Oct-Jan Season)", main = "")
+abline(v=300, col = "red", lty = 2)
+abline(v=750)
+abline(v=1400)
+abline(v=3000, col = "red", lty = 2)
+plot(density(rainaggregs$RMS_Nov,na.rm = T), xlab = "Rainfall mm (Nov-Feb Season)", main = "")
+abline(v=300, col = "red", lty = 2)
+abline(v=750)
+abline(v=1400)
+abline(v=3000, col = "red", lty = 2)
+plot(density(rainaggregs$RMS_Dec,na.rm = T), xlab = "Rainfall mm (Dec-Mar Season)", main = "")
+abline(v=300, col = "red", lty = 2)
+abline(v=750)
+abline(v=1400)
+abline(v=3000, col = "red", lty = 2)
+dev.off()
 
 
-# using dplyr for summarising the value
-# all.indices <- group_by(yearmax1.m, variable) %>% summarise(mean = mean(value))
-# library(glue)
-# 
-# for (i in names(yearmax[,c(12:38)])){
-#   assign(i, group_by(yearmax1, crop) %>% summarise(mean = mean(i)))
-# }
-
-
-
-# library(tidyverse)
-# p <- ggplot(mpg, aes(displ, cty)) + geom_point()
-# 
-# # Use vars() to supply variables from the dataset:
-# p + facet_grid(rows = vars(drv))
-# 
-# 
-# p <- ggplot(yearmax1, aes(climave)) + geom_boxplot()
-# 
-# # Use vars() to supply variables from the dataset:
-# p + facet_grid(rows = vars(crop))
-# 
-# p <- ggplot(data = yearmax1.m, aes(x=variable, y=value)) + geom_boxplot()
-# p + facet_grid(rows = vars(crop))
-
-
-plot(yearmax$climprod_soilaveweighted_allave)
-
-
-
-
-## statistics ------------------
-
-
-
-
-
-
-
-
-
-
-# pearlmilmcal <- read.csv("Calcspearlmilm.csv")
-# #pearlmilmcal <- pearlmilmcal %>% mutate(norain = temp * ph * texture * depth* 0.000001)
-# 
-# 
-# 
-# 
-#     p1 = ggplot(pearlmilmcal, aes(temp))+geom_histogram(bins = 5) + 
-#   xlab("Temperature suitability index") +
-# theme(axis.text=element_text(size=12),
-#       axis.title=element_text(size=14,face="bold"))
-# 
-#    p2 = ggplot(pearlmilmcal, aes(rain))+geom_histogram(bins = 5) + 
-#   xlab("Rainfall suitability index") +
-#   theme(axis.text=element_text(size=12),
-#         axis.title=element_text(size=14,face="bold"))
-# 
-#    p3 = ggplot(pearlmilmcal, aes(ph))+geom_histogram(bins = 5) + 
-#   xlab("PH suitability index") +
-#   theme(axis.text=element_text(size=12),
-#         axis.title=element_text(size=14,face="bold"))
-# 
-#    p4 = ggplot(pearlmilmcal, aes(depth))+geom_histogram(bins = 5) + 
-#   xlab("Depth suitability index") +
-#   theme(axis.text=element_text(size=12),
-#         axis.title=element_text(size=14,face="bold"))
-# 
-#   p5 = ggplot(pearlmilmcal, aes(texture))+geom_histogram(bins = 5) + 
-#   xlab("Texture suitability index") +
-#   theme(axis.text=element_text(size=12),
-#         axis.title=element_text(size=14,face="bold"))
-# 
-#   p6 = ggplot(pearlmilmcal, aes(total))+geom_histogram(bins = 5) + 
-#   xlab("Total suitability index") +
-#   theme(axis.text=element_text(size=12),
-#         axis.title=element_text(size=14,face="bold"))
-# 
-#    p7 = ggplot(pearlmilmcal, aes(norain))+geom_histogram(bins = 5) + 
-#   xlab("Total suitability index (excluding Rainfall index)") +
-#   theme(axis.text=element_text(size=12),
-#         axis.title=element_text(size=14,face="bold"))
-# 
-#    multiplot(p1,p2,p3,p4,p5,p6,p7, cols=2)
-# 
-#    write.csv(round(stat.desc(pearlmilmcal[,c("temp", "rain", "ph", "depth","texture","total","norain")]),0), "pearlmilmcal_stats.csv")
-#    
-#    
-#    #pearlmilmts <- read.csv("TSpearlmilm.csv")
-#    #names(pearlmilmts)
-#    
-#    #ggplot(pearlmilmts, aes(Jan)) + geom_boxplot()
-#    
-# # for finger millet
-#    fingermilmcal <- read.csv("Calcsfingermilm.csv")
-#    fingermilmcal <- fingermilmcal %>% mutate(norain = temp * ph * texture * depth* 0.000001)
-#    
-#    p1 = ggplot(fingermilmcal, aes(temp))+geom_histogram(bins = 5) + 
-#      xlab("Temperature suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p2 = ggplot(fingermilmcal, aes(rain))+geom_histogram(bins = 5) + 
-#      xlab("Rainfall suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p3 = ggplot(fingermilmcal, aes(ph))+geom_histogram(bins = 5) + 
-#      xlab("PH suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p4 = ggplot(fingermilmcal, aes(depth))+geom_histogram(bins = 5) + 
-#      xlab("Depth suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p5 = ggplot(fingermilmcal, aes(texture))+geom_histogram(bins = 5) + 
-#      xlab("Texture suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p6 = ggplot(fingermilmcal, aes(total))+geom_histogram(bins = 5) + 
-#      xlab("Total suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p7 = ggplot(fingermilmcal, aes(norain))+geom_histogram(bins = 5) + 
-#      xlab("Total suitability index (excluding Rainfall index)") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    multiplot(p1,p2,p3,p4,p5,p6,p7, cols=2)
-#    
-#    write.csv(round(stat.desc(fingermilmcal[,c("temp", "rain", "ph", "depth","texture","total","norain")]),0), "fingermilmcal_stats.csv")
-#    
-#    
-# ## for pigeon pea   
-#    p1 = ggplot(pigeonmcal, aes(temp))+geom_histogram(bins = 5) + 
-#      xlab("Temperature suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p2 = ggplot(pigeonmcal, aes(rain))+geom_histogram(bins = 5) + 
-#      xlab("Rainfall suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p3 = ggplot(pigeonmcal, aes(ph))+geom_histogram(bins = 5) + 
-#      xlab("PH suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p4 = ggplot(pigeonmcal, aes(depth))+geom_histogram(bins = 5) + 
-#      xlab("Depth suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p5 = ggplot(pigeonmcal, aes(texture))+geom_histogram(bins = 5) + 
-#      xlab("Texture suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p6 = ggplot(pigeonmcal, aes(total))+geom_histogram(bins = 5) + 
-#      xlab("Total suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p7 = ggplot(pigeonmcal, aes(norain))+geom_histogram(bins = 5) + 
-#      xlab("Total suitability index (excluding Rainfall index)") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    multiplot(p1,p2,p3,p4,p5,p6,p7, cols=2)
-#    
-#    write.csv(round(stat.desc(pigeonmcal[,c("temp", "rain", "ph", "depth","texture","total","norain")]),0), "pigeonmcal_stats.csv")
-#    
-# ## for breadfruit
-#    readfmcal <- read.csv("Calcsbreadfm.csv")
-#    breadfmcal <- breadfmcal %>% mutate(norain = temp * ph * texture * depth* 0.000001)
-#    
-#    p1 = ggplot(breadfmcal, aes(temp))+geom_histogram(bins = 5) + 
-#      xlab("Temperature suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p2 = ggplot(breadfmcal, aes(rain))+geom_histogram(bins = 5) + 
-#      xlab("Rainfall suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p3 = ggplot(breadfmcal, aes(ph))+geom_histogram(bins = 5) + 
-#      xlab("PH suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p4 = ggplot(breadfmcal, aes(depth))+geom_histogram(bins = 5) + 
-#      xlab("Depth suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p5 = ggplot(breadfmcal, aes(texture))+geom_histogram(bins = 5) + 
-#      xlab("Texture suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p6 = ggplot(breadfmcal, aes(total))+geom_histogram(bins = 5) + 
-#      xlab("Total suitability index") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    p7 = ggplot(breadfmcal, aes(norain))+geom_histogram(bins = 5) + 
-#      xlab("Total suitability index (excluding Rainfall index)") +
-#      theme(axis.text=element_text(size=12),
-#            axis.title=element_text(size=14,face="bold"))
-#    
-#    multiplot(p1,p2,p3,p4,p5,p6,p7, cols=2)
-#    
-#    write.csv(round(stat.desc(breadfmcal[,c("temp", "rain", "ph", "depth","texture","total","norain")]),0), "breadfmcal_stats.csv")
-#    
-#    
-# # Multiple plot function
-# #
-# # ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
-# # - cols:   Number of columns in layout
-# # - layout: A matrix specifying the layout. If present, 'cols' is ignored.
-# #
-# # If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
-# # then plot 1 will go in the upper left, 2 will go in the upper right, and
-# # 3 will go all the way across the bottom.
-# #
-# multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-#   library(grid)
-#   
-#   # Make a list from the ... arguments and plotlist
-#   plots <- c(list(...), plotlist)
-#   
-#   numPlots = length(plots)
-#   
-#   # If layout is NULL, then use 'cols' to determine layout
-#   if (is.null(layout)) {
-#     # Make the panel
-#     # ncol: Number of columns of plots
-#     # nrow: Number of rows needed, calculated from # of cols
-#     layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-#                      ncol = cols, nrow = ceiling(numPlots/cols))
-#   }
-#   
-#   if (numPlots==1) {
-#     print(plots[[1]])
-#     
-#   } else {
-#     # Set up the page
-#     grid.newpage()
-#     pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-#     
-#     # Make each plot, in the correct location
-#     for (i in 1:numPlots) {
-#       # Get the i,j matrix positions of the regions that contain this subplot
-#       matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-#       
-#       print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
-#                                       layout.pos.col = matchidx$col))
-#     }
-#   }
-# }
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# ## mapping-----------------------
-# 
-# mapbreadf <- read.csv("yearlycalc_breadfm.csv" )
-# mapfingermil <- read.csv("yearlycalc_fingermilm.csv" )
-# mappearlmil <- read.csv("yearlycalc_pearlmilm.csv" )
-# mappigeon <- read.csv("yearlycalc_pigeonm.csv" )
-# mapyam <- read.csv("yearlycalc_yamm.csv" )
-# 
-# mapmoringaf <- read.csv("yearlycalc_Moringa.csv")
-# 
-# 
-# # mapbreadf <- read.csv("yearlycalc_breadfm_accession.csv" )
-# # mapfingermil <- read.csv("yearlycalc_fingermilm_accession.csv" )
-# # mappearlmil <- read.csv("yearlycalc_pearlmilm_accession.csv" )
-# # mappigeon <- read.csv("yearlycalc_pigeonm_accession.csv" )
-# # mapyam <- read.csv("yearlycalc_yamm_accession.csv" )
-# 
-# coordinates(mapbreadf) <- ~ lon+lat
-# coordinates(mapfingermil) <- ~ lon+lat
-# coordinates(mappearlmil) <- ~ lon+lat
-# coordinates(mappigeon) <- ~ lon+lat
-# coordinates(mapyam) <- ~ lon+lat
-# coordinates(mapmoringaf) <- ~ lon+lat
-# 
-# 
-# proj4string(mapbreadf) = CRS("+init=epsg:4326")
-# proj4string(mapfingermil) = CRS("+init=epsg:4326")
-# proj4string(mappearlmil) = CRS("+init=epsg:4326")
-# proj4string(mappigeon) = CRS("+init=epsg:4326")
-# proj4string(mapyam) = CRS("+init=epsg:4326")
-# 
-# proj4string(mapmoringaf) = CRS("+init=epsg:4326")
-# 
-# sfbreadf= st_as_sf(mapbreadf)
-# sffingermil= st_as_sf(mapfingermil)
-# sfpearlmil= st_as_sf(mappearlmil)
-# sfpigeon= st_as_sf(mappigeon)
-# sfyam= st_as_sf(mapyam)
-# sfmoringa = st_as_sf(mapmoringaf)
-# 
-# sfyam= st_as_sf(mapmoringaf)
-# 
-# st_write(sfbreadf, dsn = "mapbreadf.shp", layer = "mapbreadf.shp", driver = "ESRI Shapefile")
-# st_write(sfmoringa, dsn = "mapbreadf.shp", layer = "mapbreadf.shp", driver = "ESRI Shapefile")
-# 
-# 
-# #writeOGR(mapfingermil, "mapfingermil.shp", driver = "ESRI Shapefile", "SUBTAUTHOR") #shitty function
-# writePointsShape(mapbreadf,"mapbreadf") #dont use it is deprecated
-# writePointsShape(mapfingermil,"mapfingermils")
-# writePointsShape(mappearlmil,"mappearlmil")
-# writePointsShape(mappigeon,"mappigeon")
-# writePointsShape(mapyam,"mapyam")
-# 
-# 
-# ## off to QGIS for creating maps
-# map("world")
-# plot(mapbreadf, add=T)
-# plot(mapfingermil, add=T, col="green")
-# 
-# ## plotting histogram ---------
-# 
-# breadf <- read.csv("yearlycalc_breadfm.csv" )
-# fingermil <- read.csv("yearlycalc_fingermilm.csv" )
-# pearlmil <- read.csv("yearlycalc_pearlmilm.csv" )
-# pigeon <- read.csv("yearlycalc_pigeonm.csv" )
-# yam <- read.csv("yearlycalc_yamm.csv" )
-# 
-# gg <- ggplot(fingermil, aes(allave))
-# gg <- gg + geom_histogram(binwidth = 5)
-# gg
-# 
-# library(reshape2)
-# library(ggplot2)
-# d <- melt(fingermil[,-c(1,12,14)])
-# ggplot(d,aes(x = value)) + 
-#   facet_wrap(~variable,scales = "free_x") + 
-#   geom_histogram(binwidth = 20)
-# 
-# d <- melt(pearlmil[,-c(1,12,14)])
-# ggplot(d,aes(x = value)) + 
-#   facet_wrap(~variable,scales = "free_x") + 
-#   geom_histogram(binwidth = 20)
-# 
-# d <- melt(pigeon[,-c(1,12,14)])
-# ggplot(d,aes(x = value)) + 
-#   facet_wrap(~variable,scales = "free_x") + 
-#   geom_histogram(binwidth = 20)
-# 
-# 
-# d <- melt(yam[,-c(1,12,14)])
-# ggplot(d,aes(x = value)) + 
-#   facet_wrap(~variable,scales = "free_x") + 
-#   geom_histogram(binwidth = 20)
-# 
-# 
-# 
-# 
-# 
-# 
-# ## ranking -----------
-# breadf <- read.csv("yearlycalcbreadfm.csv" )
-# fingermil <- read.csv("yearlycalcfingermilm.csv" )
-# pearlmil <- read.csv("yearlycalcpearlmilm.csv" )
-# pigeon <- read.csv("yearlycalcpigeonm.csv" )
-# yam <- read.csv("yearlycalcyamm.csv" )
-# 
-# bfrannks <- numeric()
-# 
-# for (i in 2:9){
-#   bfrannks = append(bfrannks, (length(which(breadf[,i]>=25))/nrow(breadf))*100)
-# }
-# 
-# fmrannks <- numeric()
-# 
-# for (i in 2:9){
-#   fmrannks = append(fmrannks, (length(which(fingermil[,i]>=25))/nrow(fingermil))*100)
-# }
-# 
-# pmrannks <- numeric()
-# 
-# for (i in 2:9){
-#   pmrannks = append(pmrannks, (length(which(pearlmil[,i]>=25))/nrow(pearlmil))*100)
-# }
-# 
-# pigrannks <- numeric()
-# 
-# for (i in 2:9){
-#   pigrannks = append(pigrannks, (length(which(pigeon[,i]>=25))/nrow(pigeon))*100)
-# }
-# 
-# yamrannks <- numeric()
-# 
-# for (i in 2:9){
-#   yamrannks = append(yamrannks, (length(which(yam[,i]>=25))/nrow(yam))*100)
-# }
-# 
-# allranks = data.frame()
-# allranks = as.data.frame(rbind(bfrannks,fmrannks,pmrannks,pigrannks,yamrannks))
-# names(allranks) = names(breadf)[2:9]
-# round(allranks)
-# write.csv(allranks, "allranks25.csv")
-# 
-# 
-# 
-# bfrannks <- numeric()
-# 
-# for (i in 2:9){
-#   bfrannks = append(bfrannks, (length(which(breadf[,i]>=50))/nrow(breadf))*100)
-# }
-# 
-# fmrannks <- numeric()
-# 
-# for (i in 2:9){
-#   fmrannks = append(fmrannks, (length(which(fingermil[,i]>=50))/nrow(fingermil))*100)
-# }
-# 
-# pmrannks <- numeric()
-# 
-# for (i in 2:9){
-#   pmrannks = append(pmrannks, (length(which(pearlmil[,i]>=50))/nrow(pearlmil))*100)
-# }
-# 
-# pigrannks <- numeric()
-# 
-# for (i in 2:9){
-#   pigrannks = append(pigrannks, (length(which(pigeon[,i]>=50))/nrow(pigeon))*100)
-# }
-# 
-# yamrannks <- numeric()
-# 
-# for (i in 2:9){
-#   yamrannks = append(yamrannks, (length(which(yam[,i]>=50))/nrow(yam))*100)
-# }
-# 
-# allranks = data.frame()
-# allranks = as.data.frame(rbind(bfrannks,fmrannks,pmrannks,pigrannks,yamrannks))
-# names(allranks) = names(breadf)[2:9]
-# round(allranks)
-# write.csv(allranks, "allranks50.csv")
-# 
-# ### CV -------------------
-# 
-# breadf <- read.csv("yearlycalc_breadfm_accession.csv" )
-# fingermil <- read.csv("yearlycalc_fingermilm_accession.csv" )
-# pearlmil <- read.csv("yearlycalc_pearlmilm_accession.csv" )
-# pigeon <- read.csv("yearlycalc_pigeonm_accession.csv" )
-# yam <- read.csv("yearlycalc_yamm_accession.csv" )
-# 
-# 
-# CV <- function(mean, sd){
-#   (sd/mean)*100
-# }
-# 
-# 
-# bfcv <- numeric()
-# 
-# for (i in 2:9){
-#   bfcv = append(bfcv, CV(mean(breadf[,i]), sd(breadf[,i]))) 
-# }
-# 
-# fmcv <- numeric()
-# 
-# for (i in 2:9){
-#   fmcv = append(fmcv, CV(mean(fingermil[,i]), sd(fingermil[,i])))
-# }
-# 
-# pmcv <- numeric()
-# 
-# for (i in 2:9){
-#   pmcv = append(pmcv, CV(mean(pearlmil[,i]), sd(pearlmil[,i])))
-# }
-# 
-# pigcv <- numeric()
-# 
-# for (i in 2:9){
-#   pigcv = append(pigcv, CV(mean(pigeon[,i]), sd(pigeon[,i])))
-# }
-# 
-# yamcv <- numeric()
-# 
-# for (i in 2:9){
-#   yamcv = append(yamcv, CV(mean(yam[,i]), sd(yam[,i])))
-# }
-# 
-# allcv = data.frame()
-# allcv = as.data.frame(rbind(bfcv,fmcv,pmcv,pigcv,yamcv))
-# names(allcv) = names(breadf)[2:9]
-# round(allcv)
-# write.csv(allcv, "allcv.csv")
-# 
-# 
-# ## Correlation
-# 
