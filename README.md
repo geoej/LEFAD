@@ -1,5 +1,7 @@
 # LEFAD
 Code and data for "A Land Evaluation Framework for Agricultural Diversification" manuscript
+
+
 <a href="https://zenodo.org/badge/latestdoi/248660700"><img src="https://zenodo.org/badge/248660700.svg" alt="DOI"></a>
 
 Codes:
