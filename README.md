@@ -15,7 +15,7 @@ Data:
 - Inputs: Input.zip	Input Data for LEFAD method. Including the ecological descriptors and data for all crops. Extracted climate and soil data for the analysis and coordinate files. 
 - Outputs: Output.zip Output data after analysis. Aggregated suitabilty data for all crops across all 28 suitability indices. Note: due to file size limitations, it was not possible to include all data files in the .zip file. Please contact the author if you need the intermediary files. 
  
-<b> DOI of GBIF-mediated  used in this study:</b>
+<b> DOI of GBIF-mediated data used in this study:</b>
 
 <ul>
 <li>	<i>Eleusine coracana</i> Gaertn.	https://doi.org/10.15468/dl.kxk9dm	</li>
